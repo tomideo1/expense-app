@@ -109,7 +109,7 @@ function App() {
             <input
               type="number"
               id="monthlyEarning"
-              className="focus:ring-blue-500 p-2 focus:border-blue-500 block w-full pl-10 pr-12 sm:text-sm border-gray-300 rounded-md"
+              className="focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 pr-12 sm:text-sm border-gray-300 rounded-md"
               placeholder="0.00"
               value={monthlyEarning}
               onChange={(e) => setMonthlyEarning(Number(e.target.value))}
@@ -154,6 +154,7 @@ function App() {
           onRemoveExpense={removeExpense}
           onEditExpense={editExpense}
           categories={categoryBudgets.map(cb => cb.category)}
+          categoryBudgets={categoryBudgets}
         />
         <Summary
           totalExpenses={totalExpenses}
