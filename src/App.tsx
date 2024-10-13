@@ -4,12 +4,14 @@ import ExpenseForm from './components/ExpenseForm'
 import ExpenseList from './components/ExpenseList'
 import Summary from './components/Summary'
 import CategoryBudgets from './components/CategoryBudgets'
+import MonthSelector from './components/MonthSelector'
 
 interface Expense {
   _id: string
   activity: string
   amount: number
   category: string
+  date: string
 }
 
 interface CategoryBudget {
@@ -22,14 +24,15 @@ function App() {
   const [monthlyEarning, setMonthlyEarning] = useState<number>(0)
   const [expenses, setExpenses] = useState<Expense[]>([])
   const [categoryBudgets, setCategoryBudgets] = useState<CategoryBudget[]>([])
+  const [selectedMonth, setSelectedMonth] = useState<string>(new Date().toISOString().slice(0, 7))
 
   useEffect(() => {
     fetchExpenses()
     fetchCategoryBudgets()
-  }, [])
+  }, [selectedMonth])
 
   const fetchExpenses = async () => {
-    const response = await fetch('http://localhost:5000/api/expenses')
+    const response = await fetch(`http://localhost:5000/api/expenses?month=${selectedMonth}`)
     const data = await response.json()
     setExpenses(data)
   }
@@ -44,7 +47,7 @@ function App() {
     const response = await fetch('http://localhost:5000/api/expenses', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(expense),
+      body: JSON.stringify({ ...expense, date: new Date(selectedMonth).toISOString() }),
     })
     const newExpense = await response.json()
     setExpenses([...expenses, newExpense])
@@ -117,6 +120,8 @@ function App() {
           </div>
         </div>
 
+        <MonthSelector selectedMonth={selectedMonth} onSelectMonth={setSelectedMonth} />
+
         <CategoryBudgets
           categoryBudgets={categoryBudgets}
           onAddCategoryBudget={addCategoryBudget}
@@ -137,6 +142,7 @@ function App() {
           remainingAmount={remainingAmount}
           expenses={expenses}
           categoryBudgets={categoryBudgets}
+          monthlyEarning={monthlyEarning}
         />
       </div>
     </div>

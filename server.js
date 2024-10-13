@@ -15,6 +15,7 @@ const expenseSchema = new mongoose.Schema({
   activity: String,
   amount: Number,
   category: String,
+  date: Date,
 });
 
 const categoryBudgetSchema = new mongoose.Schema({
@@ -26,7 +27,17 @@ const Expense = mongoose.model('Expense', expenseSchema);
 const CategoryBudget = mongoose.model('CategoryBudget', categoryBudgetSchema);
 
 app.get('/api/expenses', async (req, res) => {
-  const expenses = await Expense.find();
+  const { month } = req.query;
+  const startDate = new Date(month);
+  const endDate = new Date(startDate);
+  endDate.setMonth(endDate.getMonth() + 1);
+
+  const expenses = await Expense.find({
+    date: {
+      $gte: startDate,
+      $lt: endDate
+    }
+  });
   res.json(expenses);
 });
 
