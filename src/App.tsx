@@ -154,6 +154,7 @@ function App() {
           onRemoveExpense={removeExpense}
           onEditExpense={editExpense}
           categories={categoryBudgets.map(cb => cb.category)}
+          categoryBudgets={categoryBudgets}
         />
         <Summary
           totalExpenses={totalExpenses}
