@@ -47,7 +47,7 @@ function App() {
     if (!userEmail) return;
     setIsLoading(true);
     try {
-      const response = await fetch(`http://localhost:4000/api/users?email=${encodeURIComponent(userEmail)}&secret=${userSecret}`);
+      const response = await fetch(`https://expense-app-eaq8.onrender.com/api/users?email=${encodeURIComponent(userEmail)}&secret=${userSecret}`);
       const data = await response.json();
       if (data._id) {
         localStorage.setItem('userId', data._id);
@@ -65,20 +65,20 @@ function App() {
 
   const fetchExpenses = async (userId: string) => {
     if (!userId) return;
-    const response = await fetch(`http://localhost:4000/api/expenses?month=${selectedMonth}&userId=${userId}`);
+    const response = await fetch(`https://expense-app-eaq8.onrender.com/api/expenses?month=${selectedMonth}&userId=${userId}`);
     const data = await response.json()
     setExpenses(data)
   }
 
   const fetchCategoryBudgets = async (userId: string) => {
     if (!userId) return;
-    const response = await fetch(`http://localhost:4000/api/categoryBudgets?month=${selectedMonth}&userId=${userId}`);
+    const response = await fetch(`https://expense-app-eaq8.onrender.com/api/categoryBudgets?month=${selectedMonth}&userId=${userId}`);
     const data = await response.json()
     setCategoryBudgets(data)
   }
 
   const addExpense = async (expense: Omit<Expense, '_id'>) => {
-    const response = await fetch('http://localhost:4000/api/expenses', {
+    const response = await fetch('https://expense-app-eaq8.onrender.com/api/expenses', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ...expense, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), userId: userId }),
@@ -88,12 +88,12 @@ function App() {
   }
 
   const removeExpense = async (id: string) => {
-    await fetch(`http://localhost:4000/api/expenses/${id}`, { method: 'DELETE' })
+    await fetch(`https://expense-app-eaq8.onrender.com/api/expenses/${id}`, { method: 'DELETE' })
     setExpenses(expenses.filter(expense => expense._id !== id))
   }
 
   const editExpense = async (id: string, updatedExpense: Omit<Expense, '_id'>) => {
-    const response = await fetch(`http://localhost:4000/api/expenses/${id}`, {
+    const response = await fetch(`https://expense-app-eaq8.onrender.com/api/expenses/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({...updatedExpense, updated_at: new Date().toISOString() }),
@@ -103,7 +103,7 @@ function App() {
   }
 
   const addCategoryBudget = async (categoryBudget: Omit<CategoryBudget, '_id'>) => {
-    const response = await fetch('http://localhost:4000/api/categoryBudgets', {
+    const response = await fetch('https://expense-app-eaq8.onrender.com/api/categoryBudgets', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({...categoryBudget,created_at: new Date().toISOString(), updated_at: new Date().toISOString(), userId: userId }),
@@ -113,13 +113,13 @@ function App() {
   }
 
   const removeCategoryBudget = async (id: string) => {
-    await fetch(`http://localhost:4000/api/categoryBudgets/${id}`, { method: 'DELETE' })
+    await fetch(`https://expense-app-eaq8.onrender.com/api/categoryBudgets/${id}`, { method: 'DELETE' })
     setCategoryBudgets(categoryBudgets.filter(cb => cb._id !== id))
   }
 
 
   const editCategoryBudget = async (id: string, updatedCategoryBudget: Omit<CategoryBudget, '_id'>) => {
-    const response = await fetch(`http://localhost:4000/api/categoryBudgets/${id}`, {
+    const response = await fetch(`https://expense-app-eaq8.onrender.com/api/categoryBudgets/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({...updatedCategoryBudget, updated_at: new Date().toISOString() }),
