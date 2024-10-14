@@ -35,6 +35,9 @@ const Summary: React.FC<{
     value: amount
   }));
 
+  const totalBudget = categoryBudgets.reduce((sum, { budget }) => sum + budget, 0);
+
+
   const getCategoryStatus = (_: string, spent: number, budget: number) => {
     const percentage = (spent / budget) * 100;
     if (percentage >= 100) return 'text-red-600';
@@ -47,12 +50,17 @@ const Summary: React.FC<{
   return (
     <div className="mt-8 border-t pt-6">
       <h2 className="text-xl font-semibold mb-3">Summary</h2>
+      <div className="flex justify-between text-lg mt-2">
+        <span>Total Budget:</span>
+        <span className="font-medium">{formatNumber(totalBudget)}</span>
+      </div>
       <div className="flex justify-between text-lg">
-        <span>Total Expenses:</span>
+        <span>Total Amount Spent:</span>
         <span className="font-medium">{formatNumber(totalExpenses)}</span>
       </div>
+
       <div className="flex justify-between text-lg mt-2">
-        <span>Remaining Amount:</span>
+        <span>Total Amount Left:</span>
         <span className={`font-medium ${remainingAmount >= 0 ? 'text-green-600' : 'text-red-600'}`}>
             {formatNumber(remainingAmount)}
           </span>
