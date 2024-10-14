@@ -92,7 +92,7 @@ app.get('/api/income', async (req, res) => {
   const endDate = new Date(month);
   endDate.setMonth(endDate.getMonth() + 1);
 
-  const income = await Income.find({
+  const income = await Income.findOne({
     userId: userId,
     created_at: {
       $gte: startDate,
@@ -110,7 +110,7 @@ app.post('/api/income', async (req, res) => {
 });
 
 app.put('/api/income/:id', async (req, res) => {
-  const updatedIncome = await Expense.findByIdAndUpdate(req.params.id, req.body, { new: true });
+  const updatedIncome = await Income.findByIdAndUpdate(req.params.id, req.body, { new: true });
   res.json(updatedIncome);
 });
 
