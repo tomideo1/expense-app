@@ -109,7 +109,7 @@ const CategoryBudgets: React.FC<CategoryBudgetsProps> = ({
               <>
                 <span>{cb.category}</span>
                 <div className="flex items-center">
-                  <span className="font-medium mr-4">${cb.budget.toFixed(2)}</span>
+                  <span className="font-medium mr-4">&#8358;{cb.budget.toFixed(2)}</span>
                   <button
                     onClick={() => handleEdit(cb.category, cb.budget)}
                     className="text-blue-600 hover:text-blue-800 mr-2"

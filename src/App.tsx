@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { DollarSign } from 'lucide-react'
 import ExpenseForm from './components/ExpenseForm'
 import ExpenseList from './components/ExpenseList'
@@ -11,7 +11,6 @@ interface Expense {
   activity: string
   amount: number
   category: string
-  date: string
 }
 
 interface CategoryBudget {
@@ -22,72 +21,105 @@ interface CategoryBudget {
 
 function App() {
   const [monthlyEarning, setMonthlyEarning] = useState<number>(0)
+  const [fetched, setFetched] = useState<boolean>(false)
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [expenses, setExpenses] = useState<Expense[]>([])
   const [categoryBudgets, setCategoryBudgets] = useState<CategoryBudget[]>([])
   const [selectedMonth, setSelectedMonth] = useState<string>(new Date().toISOString().slice(0, 7))
+  const [userEmail, setUserEmail] = useState('');
+  const [userSecret, setUserSecret] = useState('');
+  const [userId, setUserId] = useState<string | null>(localStorage.getItem('userId'));
 
   useEffect(() => {
-    fetchExpenses()
-    fetchCategoryBudgets()
-  }, [selectedMonth])
+    if (userId) {
+      fetchExpenses(userId);
+      fetchCategoryBudgets(userId);
+      setFetched(true);
+    }
+  }, [selectedMonth, userId]);
 
-  const fetchExpenses = async () => {
-    const response = await fetch(`http://localhost:5000/api/expenses?month=${selectedMonth}`)
+
+
+  const fetchUserId = async () => {
+    if (!userEmail) return;
+    setIsLoading(true);
+    try {
+      const response = await fetch(`http://localhost:4000/api/users?email=${encodeURIComponent(userEmail)}&secret=${userSecret}`);
+      const data = await response.json();
+      if (data._id) {
+        localStorage.setItem('userId', data._id);
+        setUserId(data._id);
+        await fetchExpenses(data._id);
+        await fetchCategoryBudgets(data._id);
+        setFetched(true);
+      }
+    } catch (error) {
+      console.error('Failed to fetch user ID:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fetchExpenses = async (userId: string) => {
+    if (!userId) return;
+    const response = await fetch(`http://localhost:4000/api/expenses?month=${selectedMonth}&userId=${userId}`);
     const data = await response.json()
     setExpenses(data)
   }
 
-  const fetchCategoryBudgets = async () => {
-    const response = await fetch('http://localhost:5000/api/categoryBudgets')
+  const fetchCategoryBudgets = async (userId: string) => {
+    if (!userId) return;
+    const response = await fetch(`http://localhost:4000/api/categoryBudgets?month=${selectedMonth}&userId=${userId}`);
     const data = await response.json()
     setCategoryBudgets(data)
   }
 
   const addExpense = async (expense: Omit<Expense, '_id'>) => {
-    const response = await fetch('http://localhost:5000/api/expenses', {
+    const response = await fetch('http://localhost:4000/api/expenses', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...expense, date: new Date(selectedMonth).toISOString() }),
+      body: JSON.stringify({ ...expense, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), userId: userId }),
     })
     const newExpense = await response.json()
     setExpenses([...expenses, newExpense])
   }
 
   const removeExpense = async (id: string) => {
-    await fetch(`http://localhost:5000/api/expenses/${id}`, { method: 'DELETE' })
+    await fetch(`http://localhost:4000/api/expenses/${id}`, { method: 'DELETE' })
     setExpenses(expenses.filter(expense => expense._id !== id))
   }
 
   const editExpense = async (id: string, updatedExpense: Omit<Expense, '_id'>) => {
-    const response = await fetch(`http://localhost:5000/api/expenses/${id}`, {
+    const response = await fetch(`http://localhost:4000/api/expenses/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(updatedExpense),
+      body: JSON.stringify({...updatedExpense, updated_at: new Date().toISOString() }),
     })
     const editedExpense = await response.json()
     setExpenses(expenses.map(expense => expense._id === id ? editedExpense : expense))
   }
 
   const addCategoryBudget = async (categoryBudget: Omit<CategoryBudget, '_id'>) => {
-    const response = await fetch('http://localhost:5000/api/categoryBudgets', {
+    const response = await fetch('http://localhost:4000/api/categoryBudgets', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(categoryBudget),
+      body: JSON.stringify({...categoryBudget,created_at: new Date().toISOString(), updated_at: new Date().toISOString(), userId: userId }),
     })
     const newCategoryBudget = await response.json()
     setCategoryBudgets([...categoryBudgets, newCategoryBudget])
   }
 
   const removeCategoryBudget = async (id: string) => {
-    await fetch(`http://localhost:5000/api/categoryBudgets/${id}`, { method: 'DELETE' })
+    await fetch(`http://localhost:4000/api/categoryBudgets/${id}`, { method: 'DELETE' })
     setCategoryBudgets(categoryBudgets.filter(cb => cb._id !== id))
   }
 
+
   const editCategoryBudget = async (id: string, updatedCategoryBudget: Omit<CategoryBudget, '_id'>) => {
-    const response = await fetch(`http://localhost:5000/api/categoryBudgets/${id}`, {
+    const response = await fetch(`http://localhost:4000/api/categoryBudgets/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(updatedCategoryBudget),
+      body: JSON.stringify({...updatedCategoryBudget, updated_at: new Date().toISOString() }),
     })
     const editedCategoryBudget = await response.json()
     setCategoryBudgets(categoryBudgets.map(cb => cb._id === id ? editedCategoryBudget : cb))
@@ -99,51 +131,93 @@ function App() {
   return (
     <div className="min-h-screen bg-gray-100 py-8">
       <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-md p-6">
-        <h1 className="text-3xl font-bold mb-6 text-center text-blue-600">Monthly Expense Calculator</h1>
-        
+        <h1 className="text-3xl font-bold mb-6 text-center text-blue-600">Monthly Expense Logger</h1>
+
         <div className="mb-6">
           <label htmlFor="monthlyEarning" className="block text-sm font-medium text-gray-700 mb-2">
             Monthly Earning
           </label>
-          <div className="relative rounded-md shadow-sm">
+          <div className="relative rounded-md shadow-sm ">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <DollarSign className="h-5 w-5 text-gray-400" />
+              &#8358;
             </div>
             <input
-              type="number"
-              id="monthlyEarning"
-              className="focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 pr-12 sm:text-sm border-gray-300 rounded-md"
-              placeholder="0.00"
-              value={monthlyEarning}
-              onChange={(e) => setMonthlyEarning(Number(e.target.value))}
+                type="number"
+                id="monthlyEarning"
+                className="
+                shadow appearance-none border py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline
+                focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 pr-12 sm:text-sm border-gray-300 rounded-md"
+                placeholder="0.00"
+                value={monthlyEarning}
+                onChange={(e) => setMonthlyEarning(Number(e.target.value))}
             />
           </div>
         </div>
+        {!userId && <div className="mb-4 grid grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="userEmail" className="block text-sm font-medium text-gray-700 mb-2">
+              Email Address
+            </label>
+            <input
+                type="email"
+                id="userEmail"
+                className="
+              shadow appearance-none border py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline
+              focus:ring-blue-500 focus:border-blue-500 block w-full pl-3 pr-12 sm:text-sm border-gray-300 rounded-md"
+                placeholder="user@example.com"
+                value={userEmail}
+                onChange={(e) => setUserEmail(e.target.value)}
+            />
+          </div>
+          <div>
+            <label htmlFor="userSecret" className="block text-sm font-medium text-gray-700 mb-2">
+              Secret Key
+            </label>
+            <input
+                type="text"
+                id="userSecret"
+                className="
+              shadow appearance-none border py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline
+              focus:ring-blue-500 focus:border-blue-500 block w-full pl-3 pr-12 sm:text-sm border-gray-300 rounded-md"
+                placeholder="Your Secret Key"
+                value={userSecret}
+                onChange={(e) => setUserSecret(e.target.value)}
+            />
+          </div>
+        </div>
+        }
+        <MonthSelector selectedMonth={selectedMonth} onSelectMonth={setSelectedMonth}/>
+        {fetched && (<>
 
-        <MonthSelector selectedMonth={selectedMonth} onSelectMonth={setSelectedMonth} />
 
-        <CategoryBudgets
-          categoryBudgets={categoryBudgets}
-          onAddCategoryBudget={addCategoryBudget}
-          onRemoveCategoryBudget={removeCategoryBudget}
-          onEditCategoryBudget={editCategoryBudget}
-        />
+          <CategoryBudgets
+              categoryBudgets={categoryBudgets}
+              onAddCategoryBudget={addCategoryBudget}
+              onRemoveCategoryBudget={removeCategoryBudget}
+              onEditCategoryBudget={editCategoryBudget}
+          />
 
-        <ExpenseForm onAddExpense={addExpense} categories={categoryBudgets.map(cb => cb.category)} />
-        <ExpenseList
-          expenses={expenses}
-          onRemoveExpense={removeExpense}
-          onEditExpense={editExpense}
-          categories={categoryBudgets.map(cb => cb.category)}
-          categoryBudgets={categoryBudgets}
-        />
-        <Summary
-          totalExpenses={totalExpenses}
-          remainingAmount={remainingAmount}
-          expenses={expenses}
-          categoryBudgets={categoryBudgets}
-          monthlyEarning={monthlyEarning}
-        />
+          <ExpenseForm onAddExpense={addExpense} categories={categoryBudgets.map(cb => cb.category)}/>
+          <ExpenseList
+              expenses={expenses}
+              onRemoveExpense={removeExpense}
+              onEditExpense={editExpense}
+              categories={categoryBudgets.map(cb => cb.category)}
+              categoryBudgets={categoryBudgets}
+          />
+          <Summary
+              totalExpenses={totalExpenses}
+              remainingAmount={remainingAmount}
+              expenses={expenses}
+              categoryBudgets={categoryBudgets}
+              monthlyEarning={monthlyEarning}
+          />
+        </>)}
+        <button onClick={fetchUserId}
+                disabled={isLoading}
+                className={`mt-4 ${isLoading ? 'bg-gray-500' : 'bg-blue-500 hover:bg-blue-700'} text-white font-bold py-2 px-4 rounded`}>
+          {isLoading ? 'Loading...' : 'Load Expenses'}
+        </button>
       </div>
     </div>
   )

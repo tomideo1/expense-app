@@ -34,7 +34,7 @@ const Summary: React.FC<SummaryProps> = ({ totalExpenses, remainingAmount, expen
     value: amount
   }))
 
-  const getCategoryStatus = (category: string, spent: number, budget: number) => {
+  const getCategoryStatus = (_: string, spent: number, budget: number) => {
     const percentage = (spent / budget) * 100
     if (percentage >= 100) return 'text-red-600'
     if (percentage >= 80) return 'text-yellow-600'
@@ -48,12 +48,12 @@ const Summary: React.FC<SummaryProps> = ({ totalExpenses, remainingAmount, expen
       <h2 className="text-xl font-semibold mb-3">Summary</h2>
       <div className="flex justify-between text-lg">
         <span>Total Expenses:</span>
-        <span className="font-medium">${totalExpenses.toFixed(2)}</span>
+        <span className="font-medium">&#8358;{totalExpenses.toFixed(2)}</span>
       </div>
       <div className="flex justify-between text-lg mt-2">
         <span>Remaining Amount:</span>
         <span className={`font-medium ${remainingAmount >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-          ${remainingAmount.toFixed(2)}
+          &#8358;{remainingAmount.toFixed(2)}
         </span>
       </div>
       <div className="flex justify-between text-lg mt-2">
@@ -71,9 +71,9 @@ const Summary: React.FC<SummaryProps> = ({ totalExpenses, remainingAmount, expen
               <span>{cb.category}</span>
               <div>
                 <span className={`font-medium ${getCategoryStatus(cb.category, spent, cb.budget)}`}>
-                  ${spent.toFixed(2)}
+                  &#8358;{spent.toFixed(2)}
                 </span>
-                <span className="text-gray-500 ml-2">/ ${cb.budget.toFixed(2)}</span>
+                <span className="text-gray-500 ml-2">/ &#8358;{cb.budget.toFixed(2)}</span>
               </div>
             </li>
           )
@@ -92,7 +92,7 @@ const Summary: React.FC<SummaryProps> = ({ totalExpenses, remainingAmount, expen
               dataKey="value"
               label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
             >
-              {pieChartData.map((entry, index) => (
+              {pieChartData.map((_, index) => (
                 <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
               ))}
             </Pie>

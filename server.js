@@ -11,35 +11,84 @@ app.use(express.json());
 
 mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true });
 
+const userSchema = new mongoose.Schema({
+  name: String,
+  email: String,
+  secret: String
+});
+
 const expenseSchema = new mongoose.Schema({
   activity: String,
   amount: Number,
   category: String,
-  date: Date,
+  created_at: Date,
+  updated_at: Date,
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // Add this line
 });
+
+
 
 const categoryBudgetSchema = new mongoose.Schema({
   category: String,
   budget: Number,
+  created_at: Date,
+  updated_at: Date,
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // Add this line
+
 });
 
+const User = mongoose.model('User', userSchema);
 const Expense = mongoose.model('Expense', expenseSchema);
 const CategoryBudget = mongoose.model('CategoryBudget', categoryBudgetSchema);
 
+const initUsers = async () => {
+  try {
+    const userData = {
+      email: 'ayotomideaina@gmail.com',
+      secret: 'DvB1KHcmzJFj1fc'
+    };
+
+    // Using findOneAndUpdate with upsert option
+    const user = await User.findOneAndUpdate(
+      { email: userData.email },
+      userData,
+      { new: true, upsert: true, setDefaultsOnInsert: true }
+    );
+
+    console.log('User created or updated:', user);
+  } catch (error) {
+    console.error('Error initializing user:', error);
+  }
+};
+
+initUsers();
+
+app.get('/api/users', async (req, res) => {
+  const { email, secret } = req.query;
+  const user = await User.findOne({
+    email: email,
+    secret: secret
+  });
+  res.json(user);
+});
+
+
 app.get('/api/expenses', async (req, res) => {
-  const { month } = req.query;
-  const startDate = new Date(month);
-  const endDate = new Date(startDate);
+  const { month, userId } = req.query;
+  const startDate = new Date(`${month}-01T00:00:00Z`);
+  const endDate = new Date(month);
   endDate.setMonth(endDate.getMonth() + 1);
 
   const expenses = await Expense.find({
-    date: {
+    userId: userId,
+    created_at: {
       $gte: startDate,
       $lt: endDate
-    }
+    },
   });
   res.json(expenses);
 });
+
 
 app.post('/api/expenses', async (req, res) => {
   const newExpense = new Expense(req.body);
@@ -58,7 +107,18 @@ app.delete('/api/expenses/:id', async (req, res) => {
 });
 
 app.get('/api/categoryBudgets', async (req, res) => {
-  const categoryBudgets = await CategoryBudget.find();
+  const { month, userId } = req.query;
+  const startDate = new Date(`${month}-01T00:00:00Z`);
+  const endDate = new Date(month);
+  endDate.setMonth(endDate.getMonth() + 1);
+
+  const categoryBudgets = await CategoryBudget.find({
+    userId: userId,
+    created_at: {
+      $gte: startDate,
+      $lt: endDate
+    }
+  });
   res.json(categoryBudgets);
 });
 
@@ -78,5 +138,5 @@ app.delete('/api/categoryBudgets/:id', async (req, res) => {
   res.json({ message: 'Category budget deleted' });
 });
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
