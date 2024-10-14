@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { MinusCircle, Edit2, ArrowUpDown } from 'lucide-react'
 
 interface Expense {
-  id: number
+  _id: string
   activity: string
   amount: number
   category: string
@@ -10,27 +10,27 @@ interface Expense {
 
 interface ExpenseListProps {
   expenses: Expense[]
-  onRemoveExpense: (id: number) => void
-  onEditExpense: (id: number, updatedExpense: Omit<Expense, 'id'>) => void
+  onRemoveExpense: (id: string) => void
+  onEditExpense: (id: string, updatedExpense: Omit<Expense, '_id'>) => void
   categories: string[]
   categoryBudgets: { category: string; budget: number }[]
 }
 
 const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onRemoveExpense, onEditExpense, categories, categoryBudgets }) => {
-  const [editingId, setEditingId] = useState<number | null>(null)
+  const [editingId, setEditingId] = useState<string | null>(null)
   const [editedActivity, setEditedActivity] = useState('')
   const [editedAmount, setEditedAmount] = useState('')
   const [editedCategory, setEditedCategory] = useState('')
   const [sortBy, setSortBy] = useState<'category' | null>(null)
 
   const handleEdit = (expense: Expense) => {
-    setEditingId(expense.id)
+    setEditingId(expense._id)
     setEditedActivity(expense.activity)
     setEditedAmount(expense.amount.toString())
     setEditedCategory(expense.category)
   }
 
-  const handleSaveEdit = (id: number) => {
+  const handleSaveEdit = (id: string) => {
     if (editedActivity && editedAmount && editedCategory) {
       onEditExpense(id, {
         activity: editedActivity,
@@ -79,8 +79,8 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onRemoveExpense, on
       ) : (
         <ul className="space-y-2">
           {sortedExpenses.map((expense) => (
-            <li key={expense.id} className="flex justify-between items-center bg-gray-50 p-3 rounded-md">
-              {editingId === expense.id ? (
+            <li key={expense._id} className="flex justify-between items-center bg-gray-50 p-3 rounded-md">
+              {editingId === expense._id ? (
                 <>
                   <input
                     type="text"
@@ -104,7 +104,7 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onRemoveExpense, on
                     ))}
                   </select>
                   <button
-                    onClick={() => handleSaveEdit(expense.id)}
+                    onClick={() => handleSaveEdit(expense._id)}
                     className="text-green-600 hover:text-green-800 mr-2"
                   >
                     Save
@@ -129,7 +129,7 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onRemoveExpense, on
                     </span>
                   </div>
                   <div className="flex items-center">
-                    <span className="font-medium mr-4">${expense.amount.toFixed(2)}</span>
+                    <span className="font-medium mr-4">&#8358;{expense.amount.toFixed(2)}</span>
                     <button
                       onClick={() => handleEdit(expense)}
                       className="text-blue-600 hover:text-blue-800 mr-2"
@@ -137,7 +137,7 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onRemoveExpense, on
                       <Edit2 className="h-5 w-5" />
                     </button>
                     <button
-                      onClick={() => onRemoveExpense(expense.id)}
+                      onClick={() => onRemoveExpense(expense._id)}
                       className="text-red-600 hover:text-red-800"
                     >
                       <MinusCircle className="h-5 w-5" />
