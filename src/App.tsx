@@ -14,6 +14,13 @@ export interface Expense {
   updated_at?: string
 }
 
+export interface Income {
+  _id: string
+  amount: string
+  created_at?: string
+  updated_at?: string
+}
+
 interface CategoryBudget {
   _id: string
   category: string
@@ -24,6 +31,7 @@ interface CategoryBudget {
 
 function App() {
   const [monthlyEarning, setMonthlyEarning] = useState<number>(0)
+  const [incomeId, setIncomeId] = useState<string | null>(null);
   const [fetched, setFetched] = useState<boolean>(false)
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [expenses, setExpenses] = useState<Expense[]>([])
@@ -37,9 +45,32 @@ function App() {
     if (userId) {
       fetchExpenses(userId);
       fetchCategoryBudgets(userId);
+      fetchIncome(userId);
       setFetched(true);
     }
   }, [selectedMonth, userId]);
+
+  useEffect(() => {
+    // Only trigger when monthlyEarning changes and is not the initial load
+    if (monthlyEarning && fetched) {
+      addOrUpdateIncome();
+    }
+  }, [monthlyEarning]);
+
+
+  const addOrUpdateIncome = async () => {
+    const method = incomeId ? 'PUT' : 'POST';
+    const endpoint = incomeId ? `https://expense-app-eaq8.onrender.com/api/income/${incomeId}` : 'https://expense-app-eaq8.onrender.com/api/income';
+    const response = await fetch(endpoint, {
+      method: method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ amount: monthlyEarning, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), userId: userId }),
+    });
+    const data = await response.json();
+    if (!incomeId) {
+      setIncomeId(data._id);  // Set incomeId if new income was added
+    }
+  };
 
 
 
@@ -68,6 +99,12 @@ function App() {
     const response = await fetch(`https://expense-app-eaq8.onrender.com/api/expenses?month=${selectedMonth}&userId=${userId}`);
     const data = await response.json()
     setExpenses(data)
+  }
+  const fetchIncome = async (userId: string) => {
+    if (!userId) return;
+    const response = await fetch(`https://expense-app-eaq8.onrender.com/api/income?month=${selectedMonth}&userId=${userId}`);
+    const data = await response.json()
+    setIncomeId(data._id)
   }
 
   const fetchCategoryBudgets = async (userId: string) => {
