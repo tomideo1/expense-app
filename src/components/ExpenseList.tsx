@@ -7,8 +7,8 @@ interface Expense {
   activity: string
   amount: number
   category: string
-  created_at: string
-  updated_at: string
+  created_at?: string
+  updated_at?: string
 }
 
 interface ExpenseListProps {
@@ -42,18 +42,21 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onRemoveExpense, on
     const thisMonthStart = new Date(today.getFullYear(), today.getMonth(), 1);
 
     expenses.forEach(expense => {
-      const expenseDate = new Date(expense.created_at);
-      if (expenseDate.toDateString() === today.toDateString()) {
-        groups['Today'].push(expense);
-      } else if (expenseDate.toDateString() === yesterday.toDateString()) {
-        groups['Yesterday'].push(expense);
-      } else if (expenseDate >= thisWeekStart) {
-        groups['This Week'].push(expense);
-      } else if (expenseDate >= thisMonthStart) {
-        groups['This Month'].push(expense);
-      } else {
-        groups['Older'].push(expense);
+      if (expense.created_at){
+        const expenseDate = new Date(expense.created_at);
+        if (expenseDate.toDateString() === today.toDateString()) {
+          groups['Today'].push(expense);
+        } else if (expenseDate.toDateString() === yesterday.toDateString()) {
+          groups['Yesterday'].push(expense);
+        } else if (expenseDate >= thisWeekStart) {
+          groups['This Week'].push(expense);
+        } else if (expenseDate >= thisMonthStart) {
+          groups['This Month'].push(expense);
+        } else {
+          groups['Older'].push(expense);
+        }
       }
+
     });
 
     return groups;
@@ -139,7 +142,7 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onRemoveExpense, on
                    return sortOrder === 'asc' ? a.category.localeCompare(b.category) : b.category.localeCompare(a.category);
                  } else if (sortBy === 'amount') {
                    return sortOrder === 'asc' ? a.amount - b.amount : b.amount - a.amount;
-                 } else if (sortBy === 'date') {
+                 } else if (sortBy === 'date' && a.created_at && b.created_at) {
                    return sortOrder === 'asc' ? new Date(a.created_at).getTime() - new Date(b.created_at).getTime() : new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
                  }
                  return 0;

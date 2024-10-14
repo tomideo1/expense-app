@@ -65,13 +65,18 @@ initUsers();
 
 app.get('/api/users', async (req, res) => {
   const { email, secret } = req.query;
+
+  // Strip spaces from email input
+  let emailValue = email.replace(/\s+/g, '');
+  let secretValue = secret.replace(/\s+/g, '');
+
   const user = await User.findOne({
-    email: email,
-    secret: secret
+    email: emailValue,
+    secret: secretValue
   });
+
   res.json(user);
 });
-
 
 app.get('/api/expenses', async (req, res) => {
   const { month, userId } = req.query;
