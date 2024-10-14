@@ -1,51 +1,54 @@
 import React, { useState } from 'react'
 import { PlusCircle, MinusCircle, Edit2 } from 'lucide-react'
+import { formatNumber } from '../helpers/util.ts';
 
 interface CategoryBudget {
+  _id: string;
   category: string
   budget: number
 }
 
-interface CategoryBudgetsProps {
-  categoryBudgets: CategoryBudget[]
-  onAddCategoryBudget: (categoryBudget: CategoryBudget) => void
-  onRemoveCategoryBudget: (category: string) => void
-  onEditCategoryBudget: (oldCategory: string, updatedCategoryBudget: CategoryBudget) => void
-}
 
-const CategoryBudgets: React.FC<CategoryBudgetsProps> = ({
-  categoryBudgets,
-  onAddCategoryBudget,
-  onRemoveCategoryBudget,
-  onEditCategoryBudget,
-}) => {
-  const [newCategory, setNewCategory] = useState('')
-  const [newBudget, setNewBudget] = useState('')
-  const [editingCategory, setEditingCategory] = useState<string | null>(null)
-  const [editedCategory, setEditedCategory] = useState('')
-  const [editedBudget, setEditedBudget] = useState('')
+
+
+const CategoryBudgets: React.FC<{
+  categoryBudgets: CategoryBudget[];
+  onAddCategoryBudget: (categoryBudget: Omit<CategoryBudget, '_id'>) => void;
+  onRemoveCategoryBudget: (id: string) => void;
+  onEditCategoryBudget: (id: string, updatedCategoryBudget: Omit<CategoryBudget, '_id'>) => void;
+}> = ({
+    categoryBudgets,
+    onAddCategoryBudget,
+    onRemoveCategoryBudget,
+    onEditCategoryBudget,
+      }) => {
+  const [newCategory, setNewCategory] = useState('');
+  const [newBudget, setNewBudget] = useState('');
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editedCategory, setEditedCategory] = useState('');
+  const [editedBudget, setEditedBudget] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     if (newCategory && newBudget) {
-      onAddCategoryBudget({ category: newCategory, budget: Number(newBudget) })
-      setNewCategory('')
-      setNewBudget('')
+      onAddCategoryBudget({ category: newCategory, budget: Number(newBudget) });
+      setNewCategory('');
+      setNewBudget('');
     }
-  }
+  };
 
-  const handleEdit = (category: string, budget: number) => {
-    setEditingCategory(category)
-    setEditedCategory(category)
-    setEditedBudget(budget.toString())
-  }
+  const handleEdit = (cb: CategoryBudget) => {
+    setEditingId(cb._id);
+    setEditedCategory(cb.category);
+    setEditedBudget(cb.budget.toString());
+  };
 
-  const handleSaveEdit = (oldCategory: string) => {
+  const handleSaveEdit = (id: string) => {
     if (editedCategory && editedBudget) {
-      onEditCategoryBudget(oldCategory, { category: editedCategory, budget: Number(editedBudget) })
-      setEditingCategory(null)
+      onEditCategoryBudget(id, { category: editedCategory, budget: Number(editedBudget) });
+      setEditingId(null);
     }
-  }
+  };
 
   return (
     <div className="mb-6">
@@ -57,15 +60,20 @@ const CategoryBudgets: React.FC<CategoryBudgetsProps> = ({
             placeholder="Category"
             value={newCategory}
             onChange={(e) => setNewCategory(e.target.value)}
-            className="focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+            className="focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md p-2"
           />
-          <input
-            type="number"
-            placeholder="Budget"
-            value={newBudget}
-            onChange={(e) => setNewBudget(e.target.value)}
-            className="focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
-          />
+          <div className="relative rounded-md shadow-sm">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              ₦
+            </div>
+            <input
+              type="number"
+              placeholder="Budget"
+              value={newBudget}
+              onChange={(e) => setNewBudget(e.target.value)}
+              className="focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md pl-7 p-2"
+            />
+          </div>
           <button
             type="submit"
             className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
@@ -77,29 +85,34 @@ const CategoryBudgets: React.FC<CategoryBudgetsProps> = ({
       </form>
       <ul className="space-y-2">
         {categoryBudgets.map((cb) => (
-          <li key={cb.category} className="flex justify-between items-center bg-gray-50 p-3 rounded-md">
-            {editingCategory === cb.category ? (
+          <li key={cb._id} className="flex justify-between items-center bg-gray-50 p-3 rounded-md">
+            {editingId === cb._id ? (
               <>
                 <input
                   type="text"
                   value={editedCategory}
                   onChange={(e) => setEditedCategory(e.target.value)}
-                  className="focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md mr-2"
+                  className="focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md mr-2 p-2"
                 />
-                <input
-                  type="number"
-                  value={editedBudget}
-                  onChange={(e) => setEditedBudget(e.target.value)}
-                  className="focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md mr-2"
-                />
+                <div className="relative rounded-md shadow-sm">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    ₦
+                  </div>
+                  <input
+                    type="number"
+                    value={editedBudget}
+                    onChange={(e) => setEditedBudget(e.target.value)}
+                    className="focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md pl-7 p-2 mr-2"
+                  />
+                </div>
                 <button
-                  onClick={() => handleSaveEdit(cb.category)}
+                  onClick={() => handleSaveEdit(cb._id)}
                   className="text-green-600 hover:text-green-800 mr-2"
                 >
                   Save
                 </button>
                 <button
-                  onClick={() => setEditingCategory(null)}
+                  onClick={() => setEditingId(null)}
                   className="text-gray-600 hover:text-gray-800"
                 >
                   Cancel
@@ -109,15 +122,15 @@ const CategoryBudgets: React.FC<CategoryBudgetsProps> = ({
               <>
                 <span>{cb.category}</span>
                 <div className="flex items-center">
-                  <span className="font-medium mr-4">&#8358;{cb.budget.toFixed(2)}</span>
+                  <span className="font-medium mr-4">{formatNumber(cb.budget)}</span>
                   <button
-                    onClick={() => handleEdit(cb.category, cb.budget)}
+                    onClick={() => handleEdit(cb)}
                     className="text-blue-600 hover:text-blue-800 mr-2"
                   >
                     <Edit2 className="h-5 w-5" />
                   </button>
                   <button
-                    onClick={() => onRemoveCategoryBudget(cb.category)}
+                    onClick={() => onRemoveCategoryBudget(cb._id)}
                     className="text-red-600 hover:text-red-800"
                   >
                     <MinusCircle className="h-5 w-5" />
@@ -129,7 +142,7 @@ const CategoryBudgets: React.FC<CategoryBudgetsProps> = ({
         ))}
       </ul>
     </div>
-  )
+  );
 }
 
 export default CategoryBudgets
