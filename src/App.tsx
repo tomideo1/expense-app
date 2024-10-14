@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import { DollarSign } from 'lucide-react'
 import ExpenseForm from './components/ExpenseForm'
 import ExpenseList from './components/ExpenseList'
 import Summary from './components/Summary'
