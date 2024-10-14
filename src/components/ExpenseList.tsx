@@ -25,18 +25,19 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onRemoveExpense, on
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editedActivity, setEditedActivity] = useState('')
-  const [editedAmount, setEditedAmount] = useState('')
+  const [editedAmount, setEditedAmount] = useState(0)
   const [editedCategory, setEditedCategory] = useState('')
 
   const handleEdit = (expense: Expense) => {
     setEditingId(expense._id)
     setEditedActivity(expense.activity)
-    setEditedAmount(expense.amount.toString())
+    setEditedAmount(expense.amount)
     setEditedCategory(expense.category)
   }
 
-  const handleSaveEdit = (id: string, expense: Expense) => {
+  const handleSaveEdit = (id: string) => {
     if (editedActivity && editedAmount && editedCategory) {
+      let expense = {activity: editedActivity, amount: editedAmount, category: editedCategory}
       onEditExpense(id, {...expense})
       setEditingId(null)
     }
@@ -177,7 +178,7 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onRemoveExpense, on
                        <input
                          type="number"
                          value={editedAmount}
-                         onChange={(e) => setEditedAmount(e.target.value)}
+                         onChange={(e) => setEditedAmount(Number(e.target.value))}
                          className="focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md mr-2"
                        />
                        <select
@@ -190,7 +191,7 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onRemoveExpense, on
                          ))}
                        </select>
                        <button
-                         onClick={() => handleSaveEdit(expense._id, expense)}
+                         onClick={() => handleSaveEdit(expense._id)}
                          className="text-green-600 hover:text-green-800 mr-2"
                        >
                          Save
