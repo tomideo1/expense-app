@@ -17,6 +17,13 @@ const userSchema = new mongoose.Schema({
   secret: String
 });
 
+const incomeSchema = new mongoose.Schema({
+  amount: Number,
+  created_at: Date,
+  updated_at: Date,
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // Add this line
+});
+
 const expenseSchema = new mongoose.Schema({
   activity: String,
   amount: Number,
@@ -38,6 +45,7 @@ const categoryBudgetSchema = new mongoose.Schema({
 });
 
 const User = mongoose.model('User', userSchema);
+const Income = mongoose.model('Income', incomeSchema);
 const Expense = mongoose.model('Expense', expenseSchema);
 const CategoryBudget = mongoose.model('CategoryBudget', categoryBudgetSchema);
 
@@ -78,6 +86,35 @@ app.get('/api/users', async (req, res) => {
   res.json(user);
 });
 
+app.get('/api/income', async (req, res) => {
+  const { month, userId } = req.query;
+  const startDate = new Date(`${month}-01T00:00:00Z`);
+  const endDate = new Date(month);
+  endDate.setMonth(endDate.getMonth() + 1);
+
+  const income = await Income.find({
+    userId: userId,
+    created_at: {
+      $gte: startDate,
+      $lt: endDate
+    },
+  });
+  res.json(income);
+});
+
+
+app.post('/api/income', async (req, res) => {
+  const newIncome = new Income(req.body);
+  await newIncome.save();
+  res.json(newIncome);
+});
+
+app.put('/api/income/:id', async (req, res) => {
+  const updatedIncome = await Expense.findByIdAndUpdate(req.params.id, req.body, { new: true });
+  res.json(updatedIncome);
+});
+
+
 app.get('/api/expenses', async (req, res) => {
   const { month, userId } = req.query;
   const startDate = new Date(`${month}-01T00:00:00Z`);
@@ -93,6 +130,7 @@ app.get('/api/expenses', async (req, res) => {
   });
   res.json(expenses);
 });
+
 
 
 app.post('/api/expenses', async (req, res) => {
