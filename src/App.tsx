@@ -5,17 +5,21 @@ import Summary from './components/Summary'
 import CategoryBudgets from './components/CategoryBudgets'
 import MonthSelector from './components/MonthSelector'
 
-interface Expense {
+export interface Expense {
   _id: string
   activity: string
   amount: number
   category: string
+  created_at?: string
+  updated_at?: string
 }
 
 interface CategoryBudget {
   _id: string
   category: string
   budget: number
+  created_at?: string
+  updated_at?: string
 }
 
 function App() {
