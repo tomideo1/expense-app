@@ -50,12 +50,6 @@ function App() {
     }
   }, [selectedMonth, userId]);
 
-  useEffect(() => {
-    // Only trigger when monthlyEarning changes and is not the initial load
-    if (monthlyEarning && fetched) {
-      addOrUpdateIncome();
-    }
-  }, [monthlyEarning]);
 
 
   const addOrUpdateIncome = async () => {
@@ -189,6 +183,7 @@ function App() {
                 focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 pr-12 sm:text-sm border-gray-300 rounded-md"
                 placeholder="0.00"
                 value={monthlyEarning}
+                onBlur={addOrUpdateIncome}
                 onChange={(e) => setMonthlyEarning(Number(e.target.value))}
             />
           </div>
