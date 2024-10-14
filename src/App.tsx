@@ -99,6 +99,7 @@ function App() {
     const response = await fetch(`https://expense-app-eaq8.onrender.com/api/income?month=${selectedMonth}&userId=${userId}`);
     const data = await response.json()
     setIncomeId(data._id)
+    setMonthlyEarning(data.amount)
   }
 
   const fetchCategoryBudgets = async (userId: string) => {
